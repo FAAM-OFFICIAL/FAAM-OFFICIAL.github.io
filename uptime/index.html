@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAAM Status</title>
+<meta name="description" content="Live status and uptime for FAAM's services.">
+<link rel="icon" href="../favicon.svg">
+<style>
+  :root{
+    --bg:#F7F8FA;--panel:#FFFFFF;--border:#E4E7EC;--border-2:#D0D5DD;
+    --text:#0B1220;--text-2:#344054;--muted:#667085;--dim:#98A2B3;
+    --green:#027A48;--green-soft:#ECFDF3;--amber:#B54708;--amber-soft:#FFFAEB;
+    --red:#B42318;--red-soft:#FEF3F2;--accent:#2E64F0;
+    --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:760px;margin:0 auto;padding:40px 20px 60px}
+  header{display:flex;align-items:center;gap:11px;margin-bottom:28px}
+  .mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4f8cff,#7c5cff);display:inline-block}
+  .brand{font-weight:800;font-size:19px;letter-spacing:.2px}
+  .brand small{font-weight:600;color:var(--muted);font-size:13px;letter-spacing:0}
+  .banner{display:flex;align-items:center;gap:13px;border-radius:var(--radius);padding:18px 20px;margin-bottom:22px;
+    background:var(--green-soft);border:1px solid #A6F4C5}
+  .banner.issues{background:var(--amber-soft);border-color:#FEDF89}
+  .banner.down{background:var(--red-soft);border-color:#FECDCA}
+  .banner svg{width:26px;height:26px;color:var(--green);flex:0 0 auto}
+  .banner.issues svg{color:var(--amber)} .banner.down svg{color:var(--red)}
+  .banner h1{margin:0;font-size:18px} .banner p{margin:2px 0 0;font-size:13px;color:var(--text-2)}
+  .svc{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:16px 18px;margin-bottom:12px}
+  .svc-top{display:flex;align-items:center;gap:11px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--dim);flex:0 0 auto}
+  .dot.up{background:var(--green)} .dot.slow{background:var(--amber)} .dot.down{background:var(--red)}
+  .svc-name{font-weight:700;font-size:15px;flex:1}
+  .svc-name a{color:inherit;text-decoration:none}
+  .svc-state{font-size:12.5px;font-weight:700}
+  .svc-state.up{color:var(--green)} .svc-state.slow{color:var(--amber)} .svc-state.down{color:var(--red)} .svc-state.checking{color:var(--muted)}
+  .svc-sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .bars{display:flex;gap:2px;margin-top:12px}
+  .bar{flex:1;height:26px;border-radius:3px;background:#E9EDF2}
+  .bar.up{background:#3CCB7F} .bar.slow{background:#F5B24E} .bar.down{background:#F27B72}
+  .legend{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:6px}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:28px;line-height:1.6}
+  .foot a{color:var(--accent);text-decoration:none}
+  .refresh{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:14px}
+  .refresh svg{width:13px;height:13px}
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0A0E16;--panel:#111826;--border:#1F2A3D;--border-2:#2A3A55;--text:#E7ECF3;--text-2:#C2CBD9;
+      --muted:#8A97AD;--dim:#6B7890;--green:#2BD787;--green-soft:rgba(43,215,135,.12);--amber:#FFB020;
+      --amber-soft:rgba(255,176,32,.12);--red:#FF6B83;--red-soft:rgba(255,107,131,.12)}
+    .bar{background:#1B2333}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="mark"></span>
+      <div class="brand">FAAM <small>· Status</small></div>
+    </header>
+
+    <div class="banner" id="banner">
+      <svg id="bannerIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+      <div><h1 id="bannerTitle">Checking systems…</h1><p id="bannerSub">Running a live check from your browser.</p></div>
+    </div>
+
+    <div id="services"></div>
+
+    <div class="foot">
+      <div class="refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg><span id="lastChecked">Checking…</span></div>
+      <p>Live status is checked from your browser. Uptime history builds up as you revisit this page.<br>
+      <a href="../">← Back to FAAM</a></p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var SERVICES = [
+    {id:"site",  name:"Website",           url:"https://faam-official.github.io/",           link:"https://faam-official.github.io/"},
+    {id:"dash",  name:"Browser dashboard", url:"https://faam-official.github.io/dashboard/",  link:"https://faam-official.github.io/dashboard/"},
+    {id:"dl",    name:"App downloads",      url:"https://github.com/FAAM-OFFICIAL/FAAM/releases/latest", link:"https://github.com/FAAM-OFFICIAL/FAAM/releases/latest", nocors:true},
+  ];
+  var BARS = 60;
+  function hist(id){ try{ return JSON.parse(localStorage.getItem("faam_status_"+id))||[] }catch(e){ return [] } }
+  function pushHist(id,state){ var h=hist(id); h.push(state); if(h.length>BARS) h=h.slice(-BARS); try{localStorage.setItem("faam_status_"+id,JSON.stringify(h))}catch(e){} return h; }
+
+  function render(svc, state, ms){
+    var el=document.getElementById("svc-"+svc.id);
+    var stateTxt={up:"Operational",slow:"Degraded",down:"Down",checking:"Checking…"}[state];
+    el.querySelector(".dot").className="dot "+state;
+    var se=el.querySelector(".svc-state"); se.className="svc-state "+state; se.textContent=stateTxt;
+    el.querySelector(".svc-sub").textContent = state==="checking" ? "—" : (state==="down" ? "Not responding" : "Responded in "+ms+" ms");
+    var h = state==="checking" ? hist(svc.id) : pushHist(svc.id,state);
+    var bars=el.querySelector(".bars"); bars.innerHTML="";
+    var pad=BARS-h.length;
+    for(var i=0;i<BARS;i++){ var b=document.createElement("div"); var s=i<pad?"":h[i-pad]; b.className="bar "+(s||""); bars.appendChild(b); }
+  }
+
+  function check(svc){
+    return new Promise(function(resolve){
+      var t0=performance.now(); var done=false;
+      var to=setTimeout(function(){ if(!done){done=true; resolve({state:"down",ms:0}); } }, 7000);
+      var opts = svc.nocors ? {mode:"no-cors",cache:"no-store"} : {cache:"no-store"};
+      fetch(svc.url+((svc.url.indexOf("?")<0?"?":"&")+"t="+Date.now()), opts)
+        .then(function(r){ if(done)return; done=true; clearTimeout(to);
+          var ms=Math.round(performance.now()-t0);
+          var ok = svc.nocors ? true : r.ok;   // no-cors is opaque; resolving = reachable
+          resolve({state: !ok ? "down" : (ms>2500?"slow":"up"), ms:ms});
+        })
+        .catch(function(){ if(done)return; done=true; clearTimeout(to); resolve({state:"down",ms:0}); });
+    });
+  }
+
+  function overall(states){
+    if(states.some(function(s){return s==="down"})) return "down";
+    if(states.some(function(s){return s==="slow"})) return "slow";
+    return "up";
+  }
+
+  function build(){
+    var wrap=document.getElementById("services");
+    SERVICES.forEach(function(svc){
+      var d=document.createElement("div"); d.className="svc"; d.id="svc-"+svc.id;
+      d.innerHTML='<div class="svc-top"><span class="dot"></span>'
+        +'<span class="svc-name"><a href="'+svc.link+'" target="_blank" rel="noopener">'+svc.name+'</a></span>'
+        +'<span class="svc-state checking">Checking…</span></div>'
+        +'<div class="svc-sub">—</div>'
+        +'<div class="bars"></div>'
+        +'<div class="legend"><span>'+BARS+' checks ago</span><span>now</span></div>';
+      wrap.appendChild(d);
+      render(svc,"checking",0);
+    });
+  }
+
+  async function runAll(){
+    var states=[];
+    for(var i=0;i<SERVICES.length;i++){
+      var r=await check(SERVICES[i]);
+      render(SERVICES[i], r.state, r.ms);
+      states.push(r.state);
+    }
+    var o=overall(states);
+    var banner=document.getElementById("banner");
+    banner.className="banner"+(o==="up"?"":(o==="slow"?" issues":" down"));
+    document.getElementById("bannerTitle").textContent =
+      o==="up"?"All systems operational":(o==="slow"?"Some systems degraded":"We're having issues");
+    document.getElementById("bannerSub").textContent =
+      o==="up"?"Everything is running normally.":(o==="slow"?"A service is slow to respond.":"A service isn't responding right now.");
+    var ico=document.getElementById("bannerIcon");
+    ico.innerHTML = o==="up"
+      ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>'
+      : '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>';
+    document.getElementById("lastChecked").textContent="Last checked "+new Date().toLocaleTimeString();
+  }
+
+  build();
+  runAll();
+  setInterval(runAll, 30000);
+})();
+</script>
+</body>
+</html>
